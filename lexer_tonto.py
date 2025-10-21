@@ -200,3 +200,35 @@ def analyze(text):
             'col': col,
             'subtype': stype
         })
+        
+    # montar síntese pedida no enunciado
+    summary_table = {
+        'classes': counters.get('class_name', 0) + counters.get('stereotype_class', 0),
+        'relations': counters.get('relation_name', 0) + counters.get('stereotype_relation', 0),
+        'words_reserved': counters.get('reserved_word', 0),
+        'instances': counters.get('instance', 0),
+        'native_types': counters.get('native_type', 0),
+        'meta_attributes': counters.get('meta_attribute', 0)
+    }
+    return tokens_out, summary_table                                                                        
+
+# --- se executado diretamente faz um teste rápido ---
+if __name__ == "__main__":
+    sample = '''
+    package mypkg {
+      Person : kind
+      hasParent : material
+      Planeta1 : Person
+      CPFDataType
+      number
+      ordered
+      "uma string de teste"
+      true
+      <>-- --<>
+    }
+    '''
+    toks, synth = analyze(sample)
+    print("Tokens:")
+    for t in toks:
+        print(f"{t['line']:3}:{t['col']:3}  {t['type']:15} {t['value']} {('['+t['subtype']+']') if t['subtype'] else ''}")
+    print("\nSíntese:", synth)
