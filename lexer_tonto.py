@@ -109,3 +109,94 @@ def t_newline(t):
     r'\n+'
     t.lexer.lineno += t.value.count("\n")
     # não retorna token
+
+    # erro
+def t_error(t):
+    col = find_column(t.lexer.lexdata, t)
+    msg = f"Lexical error: caractere inválido '{t.value[0]}' na linha {t.lineno}, coluna {col}"
+    # Sugestão simples: se for dígito em nome, indique convenção
+    suggestion = ""
+    if re.match(r'\d', t.value[0]):
+        suggestion = " (verifique convenções de nomes/instâncias)."
+    print(msg + suggestion)
+    t.lexer.skip(1)
+
+def find_column(input, token):
+    last_cr = input.rfind('\n', 0, token.lexpos)
+    if last_cr < 0:
+        last_cr = -1
+    return (token.lexpos - last_cr)
+
+# --- utilitário para classificar tokens que precisam de distinção semântica ---
+def classify_token(t):
+    # Recebe um token previamente identificado (CLASS_NAME ou RELATION_NAME etc.)
+    val = t.value
+    lower = val.lower()
+    if lower in STEREOTYPE_CLASSES:
+        t.type = 'IDENT'  # você pode escolher tipos separados se quiser; aqui marcamos via atributos extras
+        t.stype = 'STEREOTYPE_CLASS'
+    elif val in STEREOTYPE_RELATIONS:
+        t.type = 'IDENT'
+        t.stype = 'STEREOTYPE_RELATION'
+    elif lower in RESERVED_WORDS:
+        t.type = 'IDENT'
+        t.stype = 'RESERVED_WORD'
+    elif lower in NATIVE_TYPES:
+        t.type = 'NATIVE_TYPE'
+    elif lower in META_ATTRIBUTES:
+        t.type = 'META_ATTRIBUTE'
+    else:
+        # manter tipo original (CLASS_NAME, RELATION_NAME, ...)
+        pass
+    return t
+
+# função principal de tokenização que aplica classificação extra
+def build_lexer(**kwargs):
+    lexer = lex.lex(module=sys.modules[__name__], **kwargs)
+    return lexer
+
+# função que percorre e retorna lista analítica + síntese
+def analyze(text):
+    lexer = build_lexer()
+    lexer.input(text)
+    tokens_out = []
+    summary = Counter()
+    # contadores detalhados
+    counters = defaultdict(int)
+
+    while True:
+        tok = lexer.token()
+        if not tok:
+            break
+        # calcular coluna
+        col = find_column(lexer.lexdata, tok)
+        # classificação adicional
+        if tok.type in ("CLASS_NAME","RELATION_NAME","INSTANCE_NAME","NEW_DATATYPE","RELATION_NAME"):
+            tok = classify_token(tok)
+        # marcação de estereótipo/reserved/etc.
+        stype = getattr(tok, 'stype', None)
+        if stype == 'STEREOTYPE_CLASS':
+            counters['stereotype_class'] += 1
+        elif stype == 'STEREOTYPE_RELATION':
+            counters['stereotype_relation'] += 1
+        elif stype == 'RESERVED_WORD':
+            counters['reserved_word'] += 1
+        elif tok.type == 'NATIVE_TYPE':
+            counters['native_type'] += 1
+        elif tok.type == 'META_ATTRIBUTE':
+            counters['meta_attribute'] += 1
+        elif tok.type == 'INSTANCE_NAME':
+            counters['instance'] += 1
+        elif tok.type == 'CLASS_NAME':
+            counters['class_name'] += 1
+        elif tok.type == 'RELATION_NAME':
+            counters['relation_name'] += 1
+
+        # salvar token com posição
+        tokens_out.append({
+            'type': tok.type,
+            'value': tok.value,
+            'line': tok.lineno,
+            'col': col,
+            'subtype': stype
+        })
