@@ -1,0 +1,51 @@
+package modelagem_core {
+
+	// Palavra reservada para definir um conjunto de generalização
+	genset disjoint complete {
+		// Estereótipo de classe (Kind)
+		Pessoa : kind;
+		// Estereótipo de classe (Quantity)
+		Dinheiro : quantity;
+	}
+
+	// Palavra reservada 'import'
+	import utilidades.DadosBasicos;
+
+	// Classe (Inicia com maiúscula, sem dígitos)
+	Empresa inherits DadosBasicos {
+		// Meta-atributo 'ordered'
+		empregados @ordered : Pessoa[1..*];
+		
+		// Atributo de tipo nativo
+		nomeFantasia : string;
+		
+		// Atributo com tipo de dados definido pelo usuário
+		cnpj : CpfCnpjDataType;
+	}
+
+	// Instância (Termina em dígito)
+	empresa_teste1 : Empresa;
+
+	// Palavra reservada 'where' e 'functional-complexes'
+	where functional-complexes {
+		// Estereótipo de relação (Material)
+		trabalha_em : material;
+		
+		// Ligação da relação
+		Pessoa <>-- trabalha_em --<> Empresa[0..*] {
+			// Atributo derivado (Meta-atributo 'derived')
+			dataContratacao @derived : date;
+		}
+	}
+
+	// Literais
+	tem_saldo : number = 1000.50;
+	status_ativo : boolean = true;
+	// String com aspas
+	mensagem : string = "Teste de string com \"aspas\" internas.";
+
+	// Outras palavras reservadas
+	general Pessoa;
+	specifics Pessoa;
+
+}
