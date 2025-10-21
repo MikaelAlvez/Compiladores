@@ -53,3 +53,59 @@ t_AT = r'@'
 t_COLON = r':'
 
 t_ignore = ' \t\r'  # espaços e tabs
+
+# Strings entre "..."
+def t_STRING(t):
+    r'\"([^\\\n]|(\\.))*?\"'
+    # remove as aspas
+    t.value = t.value[1:-1]
+    return t
+
+# Número inteiro ou real
+def t_NUMBER(t):
+    r'\d+(\.\d+)?'
+    if '.' in t.value:
+        t.value = float(t.value)
+    else:
+        t.value = int(t.value)
+    return t
+
+# boolean literal lowercase true/false
+def t_BOOLEAN_LITERAL(t):
+    r'\b(true|false)\b'
+    t.value = True if t.value == 'true' else False
+    return t
+
+# New data type: letters only, terminando em DataType, sem números e sem underscores
+def t_NEW_DATATYPE(t):
+    r'\b[A-Za-z]+DataType\b'
+    return t
+
+# Instance names: termina com um inteiro (um ou mais dígitos)
+# Permitir letras e underscores antes, mas obrigar a terminar em dígitos
+def t_INSTANCE_NAME(t):
+    r'\b[A-Za-z_][A-Za-z_]*\d+\b'
+    return t
+
+# Class names: inicia com Maiúscula, seguido de letras ou underscores (sem dígitos)
+def t_CLASS_NAME(t):
+    r'\b[A-Z][A-Za-z_]*\b'
+    # evitar confundir com NEW_DATATYPE (já tratado acima)
+    return t
+
+# Relation names: inicia com minúscula, seguido de letras ou underscores (sem dígitos)
+def t_RELATION_NAME(t):
+    r'\b[a-z][A-Za-z_]*\b'
+    # valor será analisado depois (poderá ser um estereótipo, reserved, native type, meta-attribute, etc.)
+    return t
+
+# fallback identifier (qualquer outro identificador)
+def t_IDENT(t):
+    r'\b[A-Za-z_][A-Za-z0-9_]*\b'
+    return t
+
+# acompanhando linhas e colunas
+def t_newline(t):
+    r'\n+'
+    t.lexer.lineno += t.value.count("\n")
+    # não retorna token
