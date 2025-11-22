@@ -20,7 +20,7 @@ STEREOTYPE_RELATIONS = {
 }
 
 RESERVED_WORDS = {
-    "genset","disjoint","complete","general","specifics","where","package","import","functional-complexes"
+    "genset","disjoint","complete","general","specifics","where","import","functional-complexes","enum"
 }
 
 NATIVE_TYPES = {"number","string","boolean","date","time","datetime"}
@@ -28,15 +28,17 @@ META_ATTRIBUTES = {"ordered","const","derived","subsets","redefines"}
 
 # --- lista de tokens do PLY ---
 tokens = [
-    # palavras-chave específicas e estereótipos (tratadas em t_ID)
     'CLASS_NAME', 'RELATION_NAME', 'INSTANCE_NAME', 'NEW_DATATYPE',
     'NATIVE_TYPE', 'META_ATTRIBUTE',
     'NUMBER', 'STRING', 'BOOLEAN_LITERAL',
-    # símbolos
     'LBRACE','RBRACE','LPAREN','RPAREN','LBRACKET','RBRACKET',
     'RANGE_DOTS','LEFT_ARROW','RIGHT_ARROW','STAR','AT','COLON',
-    'IDENT'  # fallback para identificadores que não se encaixam
+    'PACKAGE',
+    'ENUM',
+    'IDENT',
+    'COMMA',
 ]
+
 
 # regex para símbolos complexos primeiro
 t_RANGE_DOTS = r'\.\.'
@@ -51,6 +53,7 @@ t_RBRACKET = r'\]'
 t_STAR = r'\*'
 t_AT = r'@'
 t_COLON = r':'
+t_COMMA = r','
 
 t_ignore = ' \t\r'  # espaços e tabs
 
@@ -90,19 +93,31 @@ def t_INSTANCE_NAME(t):
 # Class names: inicia com Maiúscula, seguido de letras ou underscores (sem dígitos)
 def t_CLASS_NAME(t):
     r'\b[A-Z][A-Za-z_]*\b'
-    # evitar confundir com NEW_DATATYPE (já tratado acima)
+    t = classify_token(t)
     return t
+    
+def t_NATIVE_TYPE(t):
+    r'\b(number|string|boolean|date|time|datetime)\b'
+    return t
+
+def t_ENUM(t):
+    r'enum'
+    return t
+
 
 # Relation names: inicia com minúscula, seguido de letras ou underscores (sem dígitos)
 def t_RELATION_NAME(t):
     r'\b[a-z][A-Za-z_]*\b'
-    # valor será analisado depois (poderá ser um estereótipo, reserved, native type, meta-attribute, etc.)
+    t = classify_token(t)
     return t
+
 
 # fallback identifier (qualquer outro identificador)
 def t_IDENT(t):
     r'\b[A-Za-z_][A-Za-z0-9_]*\b'
+    t = classify_token(t)
     return t
+
 
 # acompanhando linhas e colunas
 def t_newline(t):
@@ -129,25 +144,42 @@ def find_column(input, token):
 
 # --- utilitário para classificar tokens que precisam de distinção semântica ---
 def classify_token(t):
-    # Recebe um token previamente identificado (CLASS_NAME ou RELATION_NAME etc.)
     val = t.value
     lower = val.lower()
+
+    # Palavra-chave PACKAGE
+    if lower == "package":
+        t.type = "PACKAGE"
+        return t
+
+    # Estereótipos de classes
     if lower in STEREOTYPE_CLASSES:
-        t.type = 'IDENT'  # você pode escolher tipos separados se quiser; aqui marcamos via atributos extras
+        t.type = 'IDENT'
         t.stype = 'STEREOTYPE_CLASS'
-    elif val in STEREOTYPE_RELATIONS:
+        return t
+
+    # Estereótipos de relações
+    if lower in STEREOTYPE_RELATIONS:
         t.type = 'IDENT'
         t.stype = 'STEREOTYPE_RELATION'
-    elif lower in RESERVED_WORDS:
+        return t
+
+    # Palavras reservadas
+    if lower in RESERVED_WORDS:
         t.type = 'IDENT'
         t.stype = 'RESERVED_WORD'
-    elif lower in NATIVE_TYPES:
+        return t
+
+    # Tipos nativos
+    if lower in NATIVE_TYPES:
         t.type = 'NATIVE_TYPE'
-    elif lower in META_ATTRIBUTES:
+        return t
+
+    # Meta-atributos
+    if lower in META_ATTRIBUTES:
         t.type = 'META_ATTRIBUTE'
-    else:
-        # manter tipo original (CLASS_NAME, RELATION_NAME, ...)
-        pass
+        return t
+
     return t
 
 # função principal de tokenização que aplica classificação extra

@@ -1,0 +1,98 @@
+Created by PLY version 3.11 (http://www.dabeaz.com/ply)
+
+Unused terminals:
+
+    BOOLEAN_LITERAL
+    INSTANCE_NAME
+    LPAREN
+    META_ATTRIBUTE
+    NATIVE_TYPE
+    NUMBER
+    RELATION_NAME
+    RPAREN
+    STAR
+    STRING
+
+Grammar
+
+Rule 0     S' -> start
+Rule 1     start -> package
+Rule 2     package -> IDENT LBRACE package_body RBRACE
+Rule 3     package_body -> class_decl
+Rule 4     package_body -> datatype_decl
+Rule 5     package_body -> enum_decl
+Rule 6     package_body -> generalization
+Rule 7     package_body -> relation_external
+Rule 8     package_body -> package_body class_decl
+Rule 9     package_body -> package_body datatype_decl
+Rule 10    package_body -> package_body enum_decl
+Rule 11    package_body -> package_body generalization
+Rule 12    package_body -> package_body relation_external
+Rule 13    package_body -> empty
+Rule 14    class_decl -> CLASS_NAME COLON IDENT class_block
+Rule 15    class_block -> LBRACE class_body RBRACE
+Rule 16    class_block -> empty
+Rule 17    class_body -> relation_internal
+Rule 18    class_body -> attribute
+Rule 19    class_body -> class_body relation_internal
+Rule 20    class_body -> class_body attribute
+Rule 21    datatype_decl -> NEW_DATATYPE LBRACE attr_list RBRACE
+Rule 22    attr_list -> attribute
+Rule 23    attr_list -> attr_list attribute
+Rule 24    enum_decl -> IDENT ENUM LBRACE enum_items RBRACE
+Rule 25    enum_items -> IDENT
+Rule 26    enum_items -> enum_items IDENT
+Rule 27    generalization -> IDENT IDENT genset_block
+Rule 28    genset_block -> LBRACE genset_body RBRACE
+Rule 29    relation_internal -> IDENT LBRACKET RANGE_DOTS RBRACKET LEFT_ARROW LBRACKET RANGE_DOTS RBRACKET CLASS_NAME
+Rule 30    relation_external -> AT IDENT IDENT CLASS_NAME RIGHT_ARROW CLASS_NAME
+Rule 31    attribute -> IDENT COLON IDENT
+Rule 32    empty -> <empty>
+
+Terminals, with rules where they appear
+
+AT                   : 30
+BOOLEAN_LITERAL      : 
+CLASS_NAME           : 14 29 30 30
+COLON                : 14 31
+IDENT                : 2 14 24 25 26 27 27 29 30 30 31 31
+INSTANCE_NAME        : 
+LBRACE               : 2 15 21 24 28
+LBRACKET             : 29 29
+LEFT_ARROW           : 29
+LPAREN               : 
+META_ATTRIBUTE       : 
+NATIVE_TYPE          : 
+NEW_DATATYPE         : 21
+NUMBER               : 
+RANGE_DOTS           : 29 29
+RBRACE               : 2 15 21 24 28
+RBRACKET             : 29 29
+RELATION_NAME        : 
+RIGHT_ARROW          : 30
+RPAREN               : 
+STAR                 : 
+STRING               : 
+error                : 
+
+Nonterminals, with rules where they appear
+
+ENUM                 : 24
+attr_list            : 21 23
+attribute            : 18 20 22 23
+class_block          : 14
+class_body           : 15 19 20
+class_decl           : 3 8
+datatype_decl        : 4 9
+empty                : 13 16
+enum_decl            : 5 10
+enum_items           : 24 26
+generalization       : 6 11
+genset_block         : 27
+genset_body          : 28
+package              : 1
+package_body         : 2 8 9 10 11 12
+relation_external    : 7 12
+relation_internal    : 17 19
+start                : 0
+
