@@ -157,4 +157,53 @@ def p_genset_body(p):
                    | IDENT COLON IDENT COMMA IDENT"""
     p[0] = ("genset_body",)
 
+# ===============================================================
+#   6. RELAÇÕES
+# ===============================================================
+
+def p_relation_internal(p):
+    """relation_internal : IDENT LBRACKET RANGE_DOTS RBRACKET LEFT_ARROW LBRACKET RANGE_DOTS RBRACKET CLASS_NAME"""
+    ontologia["relations_internal"].append(p[1])
+    p[0] = ("relation_internal", p[1])
+
+
+def p_relation_external(p):
+    """relation_external : AT IDENT IDENT CLASS_NAME RIGHT_ARROW CLASS_NAME"""
+    ontologia["relations_external"].append(p[2])
+    p[0] = ("relation_external", p[2])
+
+
+# ===============================================================
+def p_empty(p):
+    """empty :"""
+    pass
+
+
+# ===============================================================
+def build_parser():
+    lexer = build_lexer()
+    parser = yacc.yacc(debug=False)
+    parser.lexer = lexer       
+    return parser
+
+# ===============================================================
+# Teste rápido
+# ===============================================================
+if _name_ == "_main_":
+    code = """
+    package MyPkg {
+        Person : kind {
+            name : string
+        }
+
+        enum EyeColor {
+            Blue Green Brown
+        }
+    }
+    """
+
+    parser = build_parser()
+    parser.parse(code)
+    print("\nSAÍDA FINAL:")
+    print(ontologia)
 
