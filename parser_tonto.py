@@ -118,3 +118,43 @@ def p_attr_list(p):
                  | attr_list attribute"""
     pass
 
+# ===============================================================
+#   4. DECLARAÇÃO DE ENUMERATED CLASSES
+# ===============================================================
+
+def p_enum_decl(p):
+    """enum_decl : ENUM CLASS_NAME LBRACE enum_items RBRACE"""
+    ontologia["enums"].append(p[2])
+    p[0] = ("enum", p[2])
+
+
+def p_enum_item(p):
+    """enum_item : CLASS_NAME
+                 | IDENT"""
+    p[0] = p[1]
+
+def p_enum_items(p):
+    """enum_items : enum_item
+                  | enum_items enum_item"""
+
+# ===============================================================
+#   5. GENERALIZAÇÕES (GENSET)
+# ===============================================================
+
+def p_generalization(p):
+    """generalization : CLASS_NAME CLASS_NAME genset_block"""
+    ontologia["generalizations"].append(p[1])
+    p[0] = ("genset", p[1])
+
+
+def p_genset_block(p):
+    """genset_block : LBRACE genset_body RBRACE"""
+    p[0] = p[2]
+
+
+def p_genset_body(p):
+    """genset_body : IDENT COLON IDENT
+                   | IDENT COLON IDENT COMMA IDENT"""
+    p[0] = ("genset_body",)
+
+
